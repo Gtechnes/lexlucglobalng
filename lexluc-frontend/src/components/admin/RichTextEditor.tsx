@@ -21,6 +21,7 @@ import History from '@tiptap/extension-history';
 interface RichTextEditorProps {
   value: string;
   onChange: (content: string) => void;
+  onImageUpload?: (file: File) => Promise<string>;
   placeholder?: string;
   minHeight?: string;
 }
@@ -28,6 +29,7 @@ interface RichTextEditorProps {
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
+  onImageUpload,
   placeholder = 'Write your content here...',
   minHeight = '300px',
 }) => {
@@ -87,8 +89,29 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }}
           className="px-2 py-1 rounded text-sm bg-white border hover:bg-gray-100"
         >
-          🔗
+          🔗 Link
         </button>
+        {onImageUpload && (
+          <label className="px-2 py-1 rounded text-sm bg-white border hover:bg-gray-100 cursor-pointer">
+            🖼️ Image
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file && onImageUpload) {
+                  try {
+                    const url = await onImageUpload(file);
+                    editor.chain().focus().setImage({ src: url }).run();
+                  } catch (error: any) {
+                    alert(error?.message || 'Upload failed');
+                  }
+                }
+              }}
+              className="hidden"
+            />
+          </label>
+        )}
       </div>
       <div className="p-3" style={{ minHeight }}>
         <EditorContent editor={editor} />
