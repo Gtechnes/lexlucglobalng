@@ -4,6 +4,7 @@ import {
   DashboardStats,
   Service,
   Tour,
+  ToursResponse,
   Booking,
   BookingStatus,
   CreateBookingRequest,
@@ -137,12 +138,18 @@ async function executeWithRetry<T>(
     const response = await fetchWithTimeout(url, options, 15000);
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
+      let errorData: any = {};
+      try {
+        errorData = await response.json();
+      } catch {}
       
-      // Handle rate limiting - don't retry aggressively for 429
+      // Build error message with status for proper retry filtering
+      const statusErrorMsg = `API error: ${response.status}`;
+      
+      // Handle rate limiting - wait and retry once
       if (response.status === 429) {
         const retryAfter = response.headers.get('Retry-After');
-        let waitTime = backoffMs * 2; // Longer initial wait for rate limiting
+        let waitTime = 5000; // Default 5 second wait for rate limiting
         
         if (retryAfter) {
           if (!isNaN(parseInt(retryAfter))) {
@@ -153,13 +160,26 @@ async function executeWithRetry<T>(
           }
         }
         
-        // Wait and then throw - no more retries for 429
-        console.warn(`Rate limited. Waiting ${waitTime}ms before retrying...`);
+        // Wait and retry once - don't throw immediately
+        console.warn(`Rate limited (${response.status}). Waiting ${waitTime}ms before retrying...`);
         await sleep(waitTime);
+        
+        // Retry after waiting (use last retry for rate limits)
+        if (retries > 0) {
+          return executeWithRetry<T>(url, options, cacheKey, method, retries - 1, backoffMs);
+        }
+        
+        // If no retries left, throw
         throw new Error('Rate limit exceeded. Please wait a moment and try again.');
       }
       
-      throw new Error(error.message || `API error: ${response.status}`);
+      // Don't retry client errors (400-499) - these are intentional responses
+      if (response.status >= 400 && response.status < 500) {
+        throw new Error(errorData.message || statusErrorMsg);
+      }
+      
+      // For server errors (5xx), throw with "API error" prefix to allow retry
+      throw new Error(statusErrorMsg);
     }
 
     const data = await response.json();
@@ -171,8 +191,9 @@ async function executeWithRetry<T>(
 
     return data;
   } catch (err: any) {
-    // Only retry on network errors, not HTTP errors
-    if (retries > 0 && (!err.message || !err.message.includes('API error') && !err.message.includes('Rate limit'))) {
+    // Only retry on network errors (like "Failed to fetch"), not API errors
+    const isNetworkError = err instanceof TypeError && err.message === 'Failed to fetch';
+    if (retries > 0 && isNetworkError) {
       const waitTime = backoffMs * Math.pow(2, 2 - retries);
       console.warn(`Request failed: ${err.message}. Retrying in ${waitTime}ms...`);
       await sleep(waitTime);
@@ -243,8 +264,22 @@ export const servicesAPI = {
  * Tours API
  */
 export const toursAPI = {
-  getAll: (): Promise<Tour[]> =>
-    apiRequest<Tour[]>('/tours', { method: 'GET' }),
+  getAll: (params?: {
+    page?: string;
+    limit?: string;
+    status?: string;
+    destination?: string;
+    featured?: boolean;
+  }): Promise<ToursResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page);
+    if (params?.limit) searchParams.set('limit', params.limit);
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.destination) searchParams.set('destination', params.destination);
+    if (params?.featured !== undefined) searchParams.set('featured', String(params.featured));
+    const url = searchParams.toString() ? `/tours?${searchParams}` : '/tours';
+    return apiRequest<ToursResponse>(url, { method: 'GET' });
+  },
 
   getOne: (id: string): Promise<Tour> =>
     apiRequest<Tour>(`/tours/${id}`, { method: 'GET' }),
@@ -252,17 +287,49 @@ export const toursAPI = {
   getBySlug: (slug: string): Promise<Tour> =>
     apiRequest<Tour>(`/tours/slug/${slug}`, { method: 'GET' }),
 
-  create: (data: Omit<Tour, 'id' | 'createdAt' | 'updatedAt'>): Promise<Tour> =>
+  getStats: (): Promise<DashboardStats> =>
+    apiRequest<DashboardStats>('/tours/stats', { method: 'GET' }),
+
+  search: (query: string, limit?: number): Promise<Tour[]> => {
+    const url = limit ? `/tours/search?q=${query}&limit=${limit}` : `/tours/search?q=${query}`;
+    return apiRequest<Tour[]>(url, { method: 'GET' });
+  },
+
+  getFeatured: (limit?: number): Promise<Tour[]> => {
+    const url = limit ? `/tours/featured?limit=${limit}` : '/tours/featured';
+    return apiRequest<Tour[]>(url, { method: 'GET' });
+  },
+
+  getByStatus: (status: string, limit?: number): Promise<Tour[]> => {
+    const url = limit ? `/tours/status/${status}?limit=${limit}` : `/tours/status/${status}`;
+    return apiRequest<Tour[]>(url, { method: 'GET' });
+  },
+
+  getByDestination: (destination: string, limit?: number): Promise<Tour[]> => {
+    const url = limit ? `/tours/destination/${destination}?limit=${limit}` : `/tours/destination/${destination}`;
+    return apiRequest<Tour[]>(url, { method: 'GET' });
+  },
+
+  create: (data: Omit<Tour, 'id' | 'createdAt' | 'updatedAt' | 'bookingsCount'>): Promise<Tour> =>
     apiRequest<Tour>('/tours', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  update: (id: string, data: Partial<Omit<Tour, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Tour> =>
+  update: (id: string, data: Partial<Omit<Tour, 'id' | 'createdAt' | 'updatedAt' | 'bookingsCount'>>): Promise<Tour> =>
     apiRequest<Tour>(`/tours/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+
+  publish: (id: string): Promise<Tour> =>
+    apiRequest<Tour>(`/tours/${id}/publish`, { method: 'PATCH' }),
+
+  unpublish: (id: string): Promise<Tour> =>
+    apiRequest<Tour>(`/tours/${id}/unpublish`, { method: 'PATCH' }),
+
+  toggleFeatured: (id: string): Promise<Tour> =>
+    apiRequest<Tour>(`/tours/${id}/feature`, { method: 'PATCH' }),
 
   delete: (id: string): Promise<void> =>
     apiRequest<void>(`/tours/${id}`, { method: 'DELETE' }),
@@ -272,8 +339,20 @@ export const toursAPI = {
  * Bookings API
  */
 export const bookingsAPI = {
-  getAll: (): Promise<Booking[]> =>
-    apiRequest<Booking[]>('/bookings', { method: 'GET' }),
+  getAll: (params?: {
+    page?: string;
+    limit?: string;
+    status?: string;
+    tourId?: string;
+  }): Promise<{ data: Booking[]; meta: { total: number; page: number; limit: number; totalPages: number } }> => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page);
+    if (params?.limit) searchParams.set('limit', params.limit);
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.tourId) searchParams.set('tourId', params.tourId);
+    const url = searchParams.toString() ? `/bookings?${searchParams}` : '/bookings';
+    return apiRequest(url, { method: 'GET' });
+  },
 
   getOne: (id: string): Promise<Booking> =>
     apiRequest<Booking>(`/bookings/${id}`, { method: 'GET' }),

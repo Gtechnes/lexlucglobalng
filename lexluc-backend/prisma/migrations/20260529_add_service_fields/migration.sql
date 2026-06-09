@@ -1,6 +1,5 @@
--- AddEnum
-ALTER TYPE "ServiceStatus" ADD VALUE 'DRAFT';
-ALTER TYPE "ServiceStatus" ADD VALUE 'PUBLISHED';
+-- CreateEnum
+CREATE TYPE "ServiceStatus" AS ENUM ('DRAFT', 'PUBLISHED');
 
 -- AlterTable
 ALTER TABLE "services" ADD COLUMN "status" "ServiceStatus" NOT NULL DEFAULT 'DRAFT';

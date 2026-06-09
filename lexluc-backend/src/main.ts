@@ -5,13 +5,18 @@ import { AppModule } from './app.module';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import serverless from 'serverless-http';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import express from 'express';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+let cachedHandler: any = null;
+const expressApp = express();
+
+async function createNestApp() {
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp), {
     logger: ['log', 'error', 'warn', 'debug'],
   });
 
-  const PORT = process.env.PORT || 3001;
   const NODE_ENV = process.env.NODE_ENV || 'development';
   const CORS_ORIGIN = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'https://lexlucglobalng.vercel.app', 'https://lexlucglobalng-back.vercel.app'];
 
@@ -19,19 +24,18 @@ async function bootstrap() {
   app.use(helmet());
   app.use(
     cors({
-      origin: CORS_ORIGIN.split(','),
+      origin: CORS_ORIGIN,
       credentials: true,
     }),
   );
 
   // Rate Limiting
-  // More lenient for development, stricter limits can be set in production
   const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: NODE_ENV === 'production' ? 100 : 5000, // 5000 requests per 15 min in dev, 100 in prod
+    windowMs: 15 * 60 * 1000,
+    max: NODE_ENV === 'production' ? 100 : 5000,
     message: 'Too many requests from this IP, please try again later.',
-    standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    standardHeaders: true,
+    legacyHeaders: false,
     skipSuccessfulRequests: false,
   });
   app.use('/api/', limiter);
@@ -49,11 +53,22 @@ async function bootstrap() {
   // API Prefix
   app.setGlobalPrefix('api/v1');
 
-  // Listen
-  await app.listen(PORT);
-  console.log(
-    `🚀 Application is running on: http://localhost:${PORT}/api/v1 (${NODE_ENV})`,
-  );
+  await app.init();
+  return expressApp;
 }
 
-bootstrap();
+// For local development - start server
+if (require.main === module) {
+  const PORT = process.env.PORT || 3001;
+  createNestApp().then(app => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Application is running on: http://localhost:${PORT}/api/v1`);
+    });
+  });
+}
+
+// For Vercel serverless
+export default async function handler(req: any, res: any) {
+  const app = await createNestApp();
+  return serverless(app)(req, res);
+}

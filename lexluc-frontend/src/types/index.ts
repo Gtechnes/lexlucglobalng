@@ -42,46 +42,79 @@ export interface Service {
 }
 
 // Tours
+export type TourStatus = 'UPCOMING' | 'COMPLETED' | 'CANCELLED' | 'DRAFT' | 'PUBLISHED';
+
+export interface TourItineraryDay {
+  day: number;
+  title: string;
+  description: string;
+}
+
 export interface Tour {
   id: string;
   title: string;
   slug: string;
-  description: string;
-  content?: string;
-  image?: string;
+  category?: string;
   destination: string;
-  duration: number;
-  price: number;
-  maxParticipants?: number;
-  isActive: boolean;
-  highlights: string[];
-  inclusions: string[];
-  exclusions: string[];
-  itinerary?: string;
+  departureLocation?: string;
+  shortDescription?: string;
+  description: string;
   startDate?: string;
   endDate?: string;
+  status: TourStatus;
+  price: number;
+  currency?: string;
+  availableSlots?: number;
+  discount?: number;
+  featuredImage?: string;
+  gallery?: string[];
+  itinerary?: TourItineraryDay[];
+  inclusions?: string[];
+  exclusions?: string[];
+  featured: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  // Legacy fields
+  content?: string;
+  duration?: number;
+  maxParticipants?: number;
+  highlights?: string[];
   serviceId?: string;
   service?: Service;
-  metaTitle?: string;
-  metaDescription?: string;
   createdAt: string;
   updatedAt: string;
+  bookingsCount?: number;
+  // Backward compatibility
+  image?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
+export interface ToursResponse {
+  data: Tour[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 // Bookings
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED';
 
 export interface Booking {
   id: string;
   referenceNo: string;
-  firstName: string;
-  lastName: string;
-  guestName?: string; // Full name for display
+  fullName: string;
   email: string;
   phone: string;
-  numberOfParticipants: number;
+  numberOfTravelers: number;
   totalPrice: number;
   status: BookingStatus;
+  paymentStatus?: PaymentStatus;
   specialRequests?: string;
   notes?: string;
   userId?: string;
@@ -91,13 +124,15 @@ export interface Booking {
   updatedAt: string;
 }
 
+export interface BookingWithTour extends Booking {
+  tour: Tour;
+}
+
 export interface CreateBookingRequest {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phone: string;
-  numberOfParticipants: number;
-  totalPrice: number;
+  numberOfTravelers: number;
   tourId: string;
   specialRequests?: string;
 }
@@ -137,14 +172,14 @@ export interface ContactMessage {
   id: string;
   firstName: string;
   lastName: string;
-  name?: string; // Full name for display
+  name?: string;
   email: string;
   phone?: string;
   company?: string;
   subject: string;
   message: string;
   status: ContactStatus;
-  isRead?: boolean; // Convenience property
+  isRead?: boolean;
   response?: string;
   respondedAt?: string;
   createdAt: string;
@@ -169,4 +204,11 @@ export interface DashboardStats {
   bookings: number;
   posts: number;
   unreadContacts: number;
+  publishedTours?: number;
+  draftTours?: number;
+  featuredTours?: number;
+  upcomingTours?: number;
+  completedTours?: number;
+  pendingBookings?: number;
+  confirmedBookings?: number;
 }

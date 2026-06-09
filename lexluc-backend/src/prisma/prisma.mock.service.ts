@@ -12,8 +12,8 @@ export class MockPrismaService {
   private usersDB = [
     {
       id: '1',
-      email: 'admin@lexlucglobal.ng',
-      password: '$2b$10$YxM.T5D8K2X9Q0L3P1R7T.vQ9K2L5M8N0Q3R6T9W2Z5A8B1C4D7E', // bcrypt hash
+      email: 'admin@lexluc.com',
+      password: '$2b$10$3.seDZaHVm5uUTH0hJLGi.CIQAPDBzu8KEFgmPChZLieAh6a3T2TW', // bcrypt hash for '123456'
       firstName: 'Admin',
       lastName: 'User',
       role: 'SUPER_ADMIN',

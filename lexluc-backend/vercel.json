@@ -2,18 +2,17 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/main.ts",
+      "src": "dist/main.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["prisma/**", "lexluc-backend/prisma/**"],
-        "nodepm": true
+        "includeFiles": ["prisma/**"]
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/src/main.ts"
+      "dest": "/dist/main.js"
     }
   ],
   "env": {

@@ -22,7 +22,7 @@ const heroSlides = [
     id: 2,
     title: 'Agriculture',
     subtitle: 'Sustainable farming solutions for a prosperous future',
-    image: 'https://images.unsplash.com/photo-1500382616909-0f4480091044?q=80&w=1920&auto=format&fit=crop',
+    image: 'https://res.cloudinary.com/dsrboapnp/image/upload/v1780174670/lexluc/services/qssakv904mjsmvhrgr9x.png',
   },
   {
     id: 3,
@@ -34,19 +34,19 @@ const heroSlides = [
     id: 4,
     title: 'Oil & Gas',
     subtitle: 'Energy solutions powering industries worldwide',
-    image: 'https://images.unsplash.com/photo-1578662906396-524330e71eb5?q=80&w=1920&auto=format&fit=crop',
+    image: 'https://res.cloudinary.com/dsrboapnp/image/upload/v1780174612/lexluc/services/lf1alcn7jxlzo7a1hxge.png',
   },
   {
     id: 5,
     title: 'Recreation',
     subtitle: 'Premium recreational facilities for leisure and wellness',
-    image: 'https://images.unsplash.com/photo-1544551763-46a0d368d5d8?q=80&w=1920&auto=format&fit=crop',
+    image: 'https://res.cloudinary.com/dsrboapnp/image/upload/v1780174925/lexluc/services/c4infg4vbmrp3reuckar.png',
   },
   {
     id: 6,
     title: 'Transportation & Logistics',
     subtitle: 'Efficient supply chain solutions across global markets',
-    image: 'https://images.unsplash.com/photo-1586525567784-3a4b9a1b1a5e?q=80&w=1920&auto=format&fit=crop',
+    image: 'https://res.cloudinary.com/dsrboapnp/image/upload/v1780175008/lexluc/services/w0fzrffdxc3lrvwpjycy.png',
   },
 ];
 
@@ -87,7 +87,6 @@ export default function HeroSlider() {
                 className="object-cover"
                 priority={index === 0}
                 sizes="100vw"
-                quality={85}
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
               <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-purple-900/20 mix-blend-overlay" />

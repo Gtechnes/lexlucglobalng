@@ -124,9 +124,9 @@ export default function AdminDashboard() {
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                   >
                     <div>
-                      <p className="font-semibold text-gray-900">
-                        {booking.guestName}
-                      </p>
+<p className="font-semibold text-gray-900">
+                        {booking.fullName}
+                       </p>
                       <p className="text-sm text-gray-600">
                         Ref: {booking.referenceNo}
                       </p>

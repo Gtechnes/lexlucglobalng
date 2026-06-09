@@ -170,7 +170,6 @@ export function Select({
       {label && (
         <label className="block text-sm font-semibold text-gray-700 mb-2">
           {label}
-          {props.required && <span className="text-red-600">*</span>}
         </label>
       )}
       <select

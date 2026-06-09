@@ -6,7 +6,7 @@ export class PrismaService {
     {
       id: '1',
       email: 'admin@lexluc.com',
-      password: '$2b$10$7QzVQhVbT7Q7Qx7QxQxQxO',
+      password: '$2b$10$3.seDZaHVm5uUTH0hJLGi.CIQAPDBzu8KEFgmPChZLieAh6a3T2TW',
       firstName: 'Admin',
       lastName: 'User',
       role: 'SUPER_ADMIN',

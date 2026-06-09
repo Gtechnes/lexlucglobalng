@@ -20,7 +20,7 @@ export function useFetch<T>(
       const result = await fetcher();
       setData(result);
     } catch (err: any) {
-      let errorMsg = err.message || 'An error occurred';
+      let errorMsg = err.message || err.toString() || 'An error occurred';
       
       // Handle network errors
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
@@ -31,9 +31,11 @@ export function useFetch<T>(
       setError(errorMsg);
       console.error('Fetch error details:', {
         message: err?.message,
+        name: err?.name,
         stack: err?.stack,
         cause: err?.cause,
         url: process.env.NEXT_PUBLIC_API_URL,
+        errorObject: err,
       });
     } finally {
       setLoading(false);
@@ -70,7 +72,7 @@ export function useMutation<TData, TRequest>(
         setData(result);
         return result;
       } catch (err: any) {
-        let errorMsg = 'An error occurred';
+        let errorMsg = err.message || err.toString() || 'An error occurred';
         
         // Handle network errors with detailed message
         if (err instanceof TypeError && err.message === 'Failed to fetch') {
@@ -79,8 +81,6 @@ export function useMutation<TData, TRequest>(
             `Or check if you need to log in.`;
         } else if (err?.response) {
           errorMsg = `Server error: ${err.response.status} ${err.response.statusText}`;
-        } else if (err?.message) {
-          errorMsg = err.message;
         } else if (err?.errors) {
           errorMsg = JSON.stringify(err.errors);
         }
@@ -88,12 +88,14 @@ export function useMutation<TData, TRequest>(
         setError(errorMsg);
         console.error('Mutation error details:', {
           message: err?.message,
+          name: err?.name,
           stack: err?.stack,
           cause: err?.cause,
           url: process.env.NEXT_PUBLIC_API_URL,
           response: err?.response,
           errors: err?.errors,
           payload,
+          errorObject: err,
         });
         throw new Error(errorMsg);
       } finally {

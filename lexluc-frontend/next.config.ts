@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
         hostname: "**",
       },
     ],
-    formats: ["image/avif", "image/webp"],
+    qualities: [75, 85],
   },
   compress: true,
   reactStrictMode: true,
