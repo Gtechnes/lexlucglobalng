@@ -239,14 +239,13 @@ if (formData.duration < 1) {
       return;
     }
 
-    const toIsoDate = (date: string): string | undefined => {
+const toIsoDate = (date: string): string | undefined => {
       if (!date) return undefined;
       const d = new Date(date);
       return d instanceof Date && !Number.isNaN(d.getTime()) ? d.toISOString() : undefined;
     };
 
     const submitData = {
-      ...formData,
       ...formData,
       inclusions: formData.inclusions.filter(i => i.trim()),
       exclusions: formData.exclusions.filter(e => e.trim()),
