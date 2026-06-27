@@ -145,9 +145,9 @@ const posts = useMemo(() => Array.isArray(postsData) ? postsData : [], [postsDat
     completed: override.completed || undefined,
   });
 
-  const buildPostData = (data = formData) => ({
+  const buildPostData = (data = formData, isNew = !editingId) => ({
     title: data.title,
-    slug: ensureSlug(data.slug, data.title),
+    slug: ensureSlug(data.slug, data.title, isNew),
     content: data.content,
     excerpt: data.excerpt,
     image: data.image || undefined,
@@ -187,15 +187,29 @@ const posts = useMemo(() => Array.isArray(postsData) ? postsData : [], [postsDat
       return;
     }
 
-    const postData = buildPostData({ ...formData, status: nextStatus });
+    const isNew = !editingId;
+    let postData = buildPostData({ ...formData, status: nextStatus }, isNew);
 
     try {
       if (editingId) {
         await blogAPI.update(editingId, postData as unknown as Partial<BlogPostPayload>);
         showSuccess('Post updated successfully');
       } else {
-        await blogAPI.create(postData as unknown as BlogPostPayload);
-        showSuccess('Post saved successfully');
+        try {
+          await blogAPI.create(postData as unknown as BlogPostPayload);
+          showSuccess('Post saved successfully');
+        } catch (createErr: unknown) {
+          const errorMsg = createErr instanceof Error ? createErr.message : '';
+          if (errorMsg.includes('409') || errorMsg.includes('already exists')) {
+            const uniqueSlug = `${postData.slug}-${Date.now().toString(36).slice(-4)}`;
+            showError(`Slug already exists. Trying with unique slug: ${uniqueSlug}`);
+            postData = buildPostData({ ...formData, status: nextStatus, slug: uniqueSlug }, isNew);
+            await blogAPI.create(postData as unknown as BlogPostPayload);
+            showSuccess('Post saved successfully with unique slug');
+          } else {
+            throw createErr;
+          }
+        }
       }
       setShowModal(false);
       clearCache();

@@ -14,10 +14,16 @@ export function generateSlug(text: string): string {
 /**
  * Auto-generate slug from title if slug is empty
  */
-export function ensureSlug(slug: string, title: string): string {
+export function ensureSlug(slug: string, title: string, isNew: boolean = false): string {
   if (slug && slug.trim()) {
-    return slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '').replace(/-+/g, '-') || 'blog-post';
+    const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '').replace(/-+/g, '-');
+    if (cleanSlug) return cleanSlug;
   }
   const generated = generateSlug(title);
-  return generated || 'blog-post';
+  if (!generated) return 'blog-post';
+  if (isNew) {
+    const timestamp = Date.now().toString(36).slice(-4);
+    return `${generated}-${timestamp}`;
+  }
+  return generated;
 }
