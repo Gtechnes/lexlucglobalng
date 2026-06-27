@@ -1,0 +1,12 @@
+runtime: node
+
+build_command: npm run build
+start_command: npm run start
+
+env:
+  NEXT_PUBLIC_API_URL: ${API_URL}
+  NEXT_PUBLIC_SITE_URL: ${SITE_URL}
+  NEXT_PUBLIC_SITE_NAME: Lexluc Global Services
+
+envPath:
+  - .env.production
