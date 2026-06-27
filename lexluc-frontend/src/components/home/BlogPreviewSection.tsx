@@ -6,6 +6,11 @@ import { blogAPI } from '@/lib/api';
 import { Card, Badge } from '@/components/common/UI';
 import { BlogPost } from '@/types';
 
+const extractFirstImage = (content: string = ''): string | undefined => {
+  const match = content.match(/<img[^>]+src=["']([^"']+)["']/);
+  return match?.[1];
+};
+
 export default function BlogPreviewSection() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +45,12 @@ export default function BlogPreviewSection() {
             : posts.map((post) => (
                 <Link key={post.id} href={`/blog/${post.slug}`}>
                   <Card className="overflow-hidden h-full hover:shadow-xl transition-shadow">
-                    {post.image ? (
-                      <img src={post.image} alt={post.title} className="w-full h-48 object-cover" />
+                    {(post.image || extractFirstImage(post.content)) ? (
+                      <img
+                        src={post.image || extractFirstImage(post.content)}
+                        alt={post.title}
+                        className="w-full h-48 object-cover"
+                      />
                     ) : (
                       <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-4xl">📝</div>
                     )}

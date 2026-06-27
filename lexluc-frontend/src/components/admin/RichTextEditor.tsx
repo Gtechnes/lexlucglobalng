@@ -64,7 +64,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     content: value,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[260px]',
+        class: 'tiptap-content prose prose-sm max-w-none focus:outline-none min-h-[260px]',
         'aria-label': placeholder,
       },
     },
@@ -79,7 +79,18 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden">
-      <div className="bg-gray-50 border-b border-gray-300 p-2 flex flex-wrap gap-1">
+      <style>{`
+        .tiptap-content img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 0.5rem;
+          margin: 0.75rem 0;
+        }
+        .tiptap-content img.ProseMirror-selectednode {
+          outline: 3px solid #2563eb;
+        }
+      `}</style>
+      <div className="bg-gray-50 border-b border-gray-300 p-2 flex flex-wrap gap-1" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}

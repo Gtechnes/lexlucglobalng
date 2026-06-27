@@ -16,7 +16,8 @@ export function generateSlug(text: string): string {
  */
 export function ensureSlug(slug: string, title: string): string {
   if (slug && slug.trim()) {
-    return slug;
+    return slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '').replace(/-+/g, '-') || 'blog-post';
   }
-  return generateSlug(title);
+  const generated = generateSlug(title);
+  return generated || 'blog-post';
 }

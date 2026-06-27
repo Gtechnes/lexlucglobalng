@@ -7,6 +7,11 @@ import { Card, Loader, EmptyState, Badge } from '@/components/common/UI';
 import Link from 'next/link';
 import { BlogCategory, BlogPost } from '@/types';
 
+const extractFirstImage = (content: string = ''): string | undefined => {
+  const match = content.match(/<img[^>]+src=["']([^"']+)["']/);
+  return match?.[1];
+};
+
 export default function BlogPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const { data: postsData, loading, error } = useFetch<BlogPost[]>(() =>
@@ -96,6 +101,15 @@ export default function BlogPage() {
                       className="h-48 object-cover w-full"
                     />
                   ) : (
+                    extractFirstImage(post.content) && (
+                      <img
+                        src={extractFirstImage(post.content)}
+                        alt={post.title}
+                        className="h-48 object-cover w-full"
+                      />
+                    )
+                  )}
+                  {(post.image || extractFirstImage(post.content)) ? null : (
                     <div className="bg-gray-300 h-48 flex items-center justify-center text-6xl">
                       📰
                     </div>

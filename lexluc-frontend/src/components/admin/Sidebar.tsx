@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 const MENU_ITEMS = [
-  { label: 'Dashboard', href: '/admin', icon: '📊' },
+  { label: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
   { label: 'Services', href: '/admin/services', icon: '🛠️' },
   { label: 'Tours', href: '/admin/tours', icon: '🗺️' },
   { label: 'Bookings', href: '/admin/bookings', icon: '📅' },

@@ -121,9 +121,15 @@ const posts = useMemo(() => Array.isArray(postsData) ? postsData : [], [postsDat
     if (!editingId || !showModal || !formData.title.trim()) return;
     const timer = window.setTimeout(async () => {
       try {
-        await blogAPI.autosave(editingId, buildPostData({ ...formData, status: formData.status === 'SCHEDULED' && !formData.scheduledFor ? 'DRAFT' : formData.status }));
+        await blogAPI.autosave(editingId, {
+          title: formData.title,
+          slug: ensureSlug(formData.slug, formData.title),
+          content: formData.content,
+          excerpt: formData.excerpt,
+          status: formData.status === 'SCHEDULED' && !formData.scheduledFor ? 'DRAFT' : formData.status,
+        });
         setAutosaveStatus(`Autosaved ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
-      } catch {
+      } catch (err) {
         setAutosaveStatus('Autosave failed');
       }
     }, 1800);
@@ -301,7 +307,9 @@ const posts = useMemo(() => Array.isArray(postsData) ? postsData : [], [postsDat
         seoKeywords: generated.seoKeywords,
         tags: generated.tags,
       });
-      showSuccess('AI draft generated. Review and edit before publishing.');
+      setEditingId(null);
+      setShowModal(true);
+      showSuccess('AI draft generated. Review, edit, and publish or save as draft.');
     } catch (err) {
       showError(getErrorMessage(err));
     } finally {
@@ -642,6 +650,21 @@ const selectedTourIds = useMemo(() => new Set(formData.sourceTourIds), [formData
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  {(post.status === 'DRAFT' || post.status === 'UNDER_REVIEW' || post.status === 'SCHEDULED') && (
+                    <Button variant="primary" size="sm" onClick={async () => {
+                      if (!confirm(`Publish "${post.title}" now?`)) return;
+                      try {
+                        await blogAPI.publish(post.id);
+                        showSuccess('Post published successfully');
+                        refetch();
+                        refetchStats();
+                      } catch (err) {
+                        showError(getErrorMessage(err));
+                      }
+                    }}>
+                      Publish
+                    </Button>
+                  )}
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(post)}>Edit</Button>
                   <Button variant="danger" size="sm" onClick={() => handleDelete(post.id)}>Delete</Button>
                 </div>
