@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: lexluc-backend
+    runtime: node
+    rootDir: lexluc-backend
+    buildCommand: npm install; npm run build
+    startCommand: npm run start:prod
