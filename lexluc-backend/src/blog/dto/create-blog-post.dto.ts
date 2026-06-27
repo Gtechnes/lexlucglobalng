@@ -47,6 +47,7 @@ export class CreateBlogPostDto {
 
   @IsOptional()
   @IsBoolean()
+  @Type(() => Boolean)
   isPublished?: boolean;
 
   @IsOptional()
@@ -68,6 +69,7 @@ export class CreateBlogPostDto {
   @IsOptional()
   @IsArray()
   @IsUUID(undefined, { each: true })
+  @Type(() => String)
   sourceTourIds?: string[];
 
   @IsOptional()
@@ -76,18 +78,22 @@ export class CreateBlogPostDto {
 
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   views?: number;
 
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   likes?: number;
 
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   shares?: number;
 
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   commentsCount?: number;
 
   @IsOptional()

@@ -45,16 +45,22 @@ export class BlogService {
   constructor(private prisma: PrismaService) {}
 
   async create(createBlogPostDto: CreateBlogPostDto) {
-    const slug = this.normalizeSlug(createBlogPostDto.slug || createBlogPostDto.title);
-    const existing = await this.prisma.blogPost.findFirst({ where: { slug, deletedAt: null } });
-    if (existing) {
-      throw new ConflictException(`Blog slug "${slug}" already exists`);
-    }
+    try {
+      const slug = this.normalizeSlug(createBlogPostDto.slug || createBlogPostDto.title);
+      const existing = await this.prisma.blogPost.findFirst({ where: { slug, deletedAt: null } });
+      if (existing) {
+        throw new ConflictException(`Blog slug "${slug}" already exists`);
+      }
 
-    const data = this.mapCreateData(createBlogPostDto, slug);
-    this.logger.log(`Creating blog post: title="${createBlogPostDto.title}", status="${data.status}"`);
-    const created = await this.prisma.blogPost.create({ data, include: { category: true } });
-    return this.normalizeBlogPost(created);
+      const data = this.mapCreateData(createBlogPostDto, slug);
+      this.logger.log(`Creating blog post: title="${createBlogPostDto.title}", status="${data.status}"`);
+      const created = await this.prisma.blogPost.create({ data, include: { category: true } });
+      return this.normalizeBlogPost(created);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      this.logger.error(`Failed to create blog post: ${message}`);
+      throw err;
+    }
   }
 
   async findAllPublic(page?: string, limit?: string, categoryId?: string) {

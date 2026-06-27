@@ -145,27 +145,29 @@ const posts = useMemo(() => Array.isArray(postsData) ? postsData : [], [postsDat
     completed: override.completed || undefined,
   });
 
-  const buildPostData = (data = formData, isNew = !editingId) => ({
-    title: data.title,
-    slug: ensureSlug(data.slug, data.title, isNew),
-    content: data.content,
-    excerpt: data.excerpt,
-    image: data.image || undefined,
-    categoryId: data.categoryId,
-    status: data.status,
-    isPublished: data.status === 'PUBLISHED',
-    scheduledFor: data.status === 'SCHEDULED' && data.scheduledFor ? new Date(data.scheduledFor).toISOString() : undefined,
-    aiGenerated: data.aiGenerated,
-    sourceTourIds: data.sourceTourIds,
-    metaTitle: data.metaTitle,
-    metaDescription: data.metaDescription,
-    seoKeywords: data.seoKeywords,
-    tags: data.tags,
-    views: data.views,
-    likes: data.likes,
-    shares: data.shares,
-    commentsCount: data.commentsCount,
-  });
+  const buildPostData = (data = formData, isNew = !editingId) => {
+    const postData: Record<string, unknown> = {
+      title: data.title,
+      slug: ensureSlug(data.slug, data.title, isNew),
+      content: data.content,
+      excerpt: data.excerpt || undefined,
+      image: data.image || undefined,
+      status: data.status,
+      aiGenerated: data.aiGenerated,
+      sourceTourIds: data.sourceTourIds?.length ? data.sourceTourIds : [],
+      metaTitle: data.metaTitle || undefined,
+      metaDescription: data.metaDescription || undefined,
+      seoKeywords: data.seoKeywords?.length ? data.seoKeywords : [],
+      tags: data.tags?.length ? data.tags : [],
+      views: data.views || 0,
+      likes: data.likes || 0,
+      shares: data.shares || 0,
+      commentsCount: data.commentsCount || 0,
+    };
+    if (data.categoryId) postData.categoryId = data.categoryId;
+    if (data.scheduledFor && data.status === 'SCHEDULED') postData.scheduledFor = new Date(data.scheduledFor).toISOString();
+    return postData;
+  };
 
   const handleSubmit = async (e?: FormEvent, statusOverride?: BlogPostStatus) => {
     if (e) e.preventDefault();
