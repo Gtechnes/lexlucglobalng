@@ -4,4 +4,4 @@ services:
     runtime: node
     rootDir: lexluc-backend
     buildCommand: npm install; npm run build
-    startCommand: npm run start:prod
+    startCommand: cd lexluc-backend && npm run start:prod
