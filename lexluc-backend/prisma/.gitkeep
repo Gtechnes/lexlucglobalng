@@ -1,0 +1,3 @@
+# Prisma migrations will be stored here
+# Run: npx prisma migrate dev --name init
+# To create and apply migrations

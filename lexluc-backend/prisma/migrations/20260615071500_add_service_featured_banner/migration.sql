@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "services" ADD COLUMN IF NOT EXISTS "featured" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "services" ADD COLUMN IF NOT EXISTS "serviceBanner" TEXT;
